@@ -35,3 +35,22 @@ else
 {
     Console.WriteLine("Il n'y a pas de section 1010");
 }
+
+sections = sectionRepository.GetAllByName("Tourisme");
+foreach (Section section in sections)
+{
+    Console.WriteLine($"{section.Id}: {section.SectionName}");
+}
+Console.WriteLine("---Avant insertion---");
+Console.WriteLine(sectionRepository.Insert(1220, "Gestion du temps libre"));
+
+Console.WriteLine("---Après insertion---");
+
+sections = sectionRepository.GetAll();
+foreach (Section section in sections)
+{
+    Console.WriteLine($"{section.Id}: {section.SectionName}");
+}
+
+Console.WriteLine("---Suppression---");
+sectionRepository.Delete(1230);
