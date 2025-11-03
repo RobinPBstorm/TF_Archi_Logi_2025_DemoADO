@@ -1,0 +1,1 @@
+﻿CREATE view test AS select * from section;
