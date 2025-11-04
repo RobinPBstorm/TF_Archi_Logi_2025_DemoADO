@@ -20,6 +20,11 @@ namespace DemoADO.Repositories
 
         // CRUD
         // Create
+        public int Insert(Section section)
+        {
+            return Insert(section.Id, section.SectionName);
+        }
+
         public int Insert(int id, string name)
         {
             int idInsert = -1;
@@ -125,6 +130,36 @@ namespace DemoADO.Repositories
         }
 
         // Update
+        /// <summary>
+        /// Mise à jour de la table Section
+        /// </summary>
+        /// <param name="id">Identifiant de la section</param>
+        /// <param name="section">Objet représentant les nouvelles valeurs de la section</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void Update(int id, Section section) {
+            if (section is null) throw new ArgumentNullException(nameof(section), "La section ne peut être null");
+            if (section.SectionName is null) throw new NullReferenceException("Le nom de la section ne peut être null");
+            using (SqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "UPDATE [Section] "
+                    + "SET [SectionName] = @name "
+                    + "WHERE [Id] = @id";
+                command.Parameters.Add(new SqlParameter("name",section.SectionName));
+                command.Parameters.Add(new SqlParameter("id",id));
+                try
+                {
+                    _connection.Open();
+                    if(command.ExecuteNonQuery() == 0) throw new InvalidOperationException("Opération de mise à jour invalide");
+                    _connection.Close();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
 
         // Delete
         public void Delete(int id)
