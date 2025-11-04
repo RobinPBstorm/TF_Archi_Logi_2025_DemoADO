@@ -31,12 +31,26 @@ namespace DemoADO.Repositories
             updateCommand.CommandText = "UPDATE [Section] "
                 + "SET [SectionName] = @sectionName "
                 + "WHERE [Id] = @id";
-            updateCommand.Parameters.Add(new SqlParameter("sectionName",SqlDbType.VarChar,50, "SectionName"));
-            updateCommand.Parameters.Add(new SqlParameter("id",SqlDbType.Int, 0, "Id"));
+            updateCommand.Parameters.Add(new SqlParameter("sectionName", SqlDbType.VarChar, 50, "SectionName"));
+            updateCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
+
+            //Définition de la commande d'insertion
+            SqlCommand insertCommand = _connection.CreateCommand();
+            insertCommand.CommandText = "INSERT INTO [Section] ([Id], [SectionName]) "
+                + "VALUES (@id, @sectionName)";
+            insertCommand.Parameters.Add(new SqlParameter("sectionName", SqlDbType.VarChar, 50, "SectionName"));
+            insertCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
+
+            //Définition de la commande de suppression
+            SqlCommand deleteCommand = _connection.CreateCommand();
+            deleteCommand.CommandText = "DELETE FROM [Section] WHERE [Id] = @id";
+            deleteCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
 
             //Affectation des commandes à notre adapteur
             _adapter.SelectCommand = selectCommand;
             _adapter.UpdateCommand = updateCommand;
+            _adapter.InsertCommand = insertCommand;
+            _adapter.DeleteCommand = deleteCommand;
         }
 
         public void Get()
@@ -45,7 +59,7 @@ namespace DemoADO.Repositories
             lastReception = DateTime.Now;
         }
 
-        public void Update() 
+        public void UpdateDataSet() 
         { 
             _adapter.Update(Section);
         }

@@ -62,14 +62,47 @@ SectionRepositoryDisconnected repository = new SectionRepositoryDisconnected(con
 
 repository.Get();
 
-foreach (DataRow row in repository.Section.Rows)
+ConsoleKey key;
+do
 {
-    Console.WriteLine($"{row["Id"]} - {row["SectionName"]} - {row["ReceptionDate"]}");
-    if ((int)row["Id"] == 1010) {
-        row.BeginEdit();
-        row["SectionName"] = "ADO .net";
-        row.EndEdit();
+    Console.Clear();
+    for (int i = 0; i < repository.Section.Rows.Count; i++)
+    {
+        DataRow row = repository.Section.Rows[i];
+        Console.WriteLine($"{i} - {row["Id"]} - {row["SectionName"]}");
     }
-}
 
-repository.Update();
+    Console.WriteLine("Que voulez-vous faire :");
+    Console.WriteLine("[U]pdate - [C]reate - [D]elete - [Esc]ape");
+    key = Console.ReadKey(true).Key;
+
+    switch (key)
+    {
+        case ConsoleKey.U:
+            Console.WriteLine("Indiquez le numéro de section :");
+            int index_update = int.Parse(Console.ReadLine());
+            DataRow section_to_update = repository.Section.Rows[index_update];
+            Console.WriteLine($"Veuillez donner le nouveau nom pour la section \"{section_to_update["SectionName"]}\" :");
+            section_to_update.BeginEdit();
+            section_to_update["SectionName"] = Console.ReadLine();
+            section_to_update.EndEdit();
+            repository.UpdateDataSet();
+            break;
+        case ConsoleKey.C:
+            DataRow section_to_add = repository.Section.NewRow();
+            repository.Section.Rows.Add(section_to_add);
+            Console.WriteLine("Veuillez indiquer un code de 4 chiffres pour l'identifiant de section :");
+            section_to_add["Id"] = int.Parse(Console.ReadLine());
+            Console.WriteLine("Veuillez indiquer un nom pour la section :");
+            section_to_add["SectionName"] = Console.ReadLine();
+            repository.UpdateDataSet();
+            break;
+        case ConsoleKey.D:
+            Console.WriteLine("Indiquez le numéro de section :");
+            int index_delete = int.Parse(Console.ReadLine());
+            DataRow section_to_delete = repository.Section.Rows[index_delete];
+            section_to_delete.Delete();
+            repository.UpdateDataSet();
+            break;
+    } 
+} while (key != ConsoleKey.Escape);
