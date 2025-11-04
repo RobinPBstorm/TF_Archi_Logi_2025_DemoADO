@@ -1,64 +1,69 @@
-﻿
-using DemoADO.models;
+﻿using DemoADO.models;
 using DemoADO.Repositories;
-using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Data.Common;
 
 string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADO;Integrated Security=True";
 
-SqlConnection connection = new SqlConnection(connectionString);
+string providerName = "System.Data.SqlClient";
+
+DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
+
+//DbProviderFactory factory = SqlClientFactory.Instance;
+
+DbConnection connection = factory.CreateConnection()!;
+connection.ConnectionString = connectionString;
 
 #region Code Robin
-//// Vérifier que la connection est établie
-//using (SqlConnection connection1 = connection)
-//{
-//    connection1.Open();
+// Vérifier que la connection est établie
+using (DbConnection connection1 = connection)
+{
+    connection1.Open();
 
-//    Console.WriteLine("Connection réussie");
+    Console.WriteLine("Connection réussie");
 
-//    connection1.Close();
-//}
+    connection1.Close();
+}
 
-//SectionRepository sectionRepository = new SectionRepository(
-//    new SqlConnection(connectionString));
+SectionRepository sectionRepository = new SectionRepository(connection);
 
-//List<Section> sections = sectionRepository.GetAll();
-//foreach(Section section in sections)
-//{
-//    Console.WriteLine($"{section.Id}: {section.SectionName}");
-//}
+List<Section> sections = sectionRepository.GetAll();
+foreach (Section section in sections)
+{
+    Console.WriteLine($"{section.Id}: {section.SectionName}");
+}
 
-//Section? oneSection = sectionRepository.GetOneById(1010);
-//if (oneSection is not null)
-//{
-//    Console.WriteLine($"Voici la section 1010: {oneSection!.SectionName}");
-//}
-//else
-//{
-//    Console.WriteLine("Il n'y a pas de section 1010");
-//}
+Section? oneSection = sectionRepository.GetOneById(1010);
+if (oneSection is not null)
+{
+    Console.WriteLine($"Voici la section 1010: {oneSection!.SectionName}");
+}
+else
+{
+    Console.WriteLine("Il n'y a pas de section 1010");
+}
 
-//sections = sectionRepository.GetAllByName("Tourisme");
-//foreach (Section section in sections)
-//{
-//    Console.WriteLine($"{section.Id}: {section.SectionName}");
-//}
-//Console.WriteLine("---Avant insertion---");
-//Console.WriteLine(sectionRepository.Insert(1220, "Gestion du temps libre"));
+sections = sectionRepository.GetAllByName("Tourisme");
+foreach (Section section in sections)
+{
+    Console.WriteLine($"{section.Id}: {section.SectionName}");
+}
+Console.WriteLine("---Avant insertion---");
+Console.WriteLine(sectionRepository.Insert(1220, "Gestion du temps libre"));
 
-//Console.WriteLine("---Après insertion---");
+Console.WriteLine("---Après insertion---");
 
-//sections = sectionRepository.GetAll();
-//foreach (Section section in sections)
-//{
-//    Console.WriteLine($"{section.Id}: {section.SectionName}");
-//}
+sections = sectionRepository.GetAll();
+foreach (Section section in sections)
+{
+    Console.WriteLine($"{section.Id}: {section.SectionName}");
+}
 
-//Console.WriteLine("---Suppression---");
-//sectionRepository.Delete(1230); 
+Console.WriteLine("---Suppression---");
+sectionRepository.Delete(1230);
 #endregion
 
-SectionRepositoryDisconnected repository = new SectionRepositoryDisconnected(connection);
+SectionRepositoryDisconnected repository = new SectionRepositoryDisconnected(connection, providerName);
 
 repository.Get();
 

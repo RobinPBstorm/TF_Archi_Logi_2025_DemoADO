@@ -1,14 +1,14 @@
 ﻿using DemoADO.models;
-using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Data.Common;
 
 namespace DemoADO.Repositories
 {
     public class SectionRepository
     {
-        private readonly SqlConnection _connection;
+        private readonly DbConnection _connection;
 
-        public SectionRepository(SqlConnection sqlConnection)
+        public SectionRepository(DbConnection sqlConnection)
         {
             _connection = sqlConnection;
         }
@@ -29,25 +29,30 @@ namespace DemoADO.Repositories
         {
             int idInsert = -1;
 
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "INSERT INTO Section (Id, SectionName) " +
                     "OUTPUT inserted.Id " +
                     "VALUES (@id, @name)";
-                command.Parameters.AddWithValue("id", id);
-                command.Parameters.AddWithValue("name", name);
+                //DbParameter id_param = command.CreateParameter();
+                //id_param.ParameterName = "id";
+                //id_param.Value = id;
+                //command.Parameters.Add(id_param);
+                AddParam(command, "id", id);
+                AddParam(command, "name", name);
 
-                _connection.Open();
                 try
                 {
+                    _connection.Open();
                     idInsert = (int)command.ExecuteScalar();
+                    _connection.Close();
                 }
                 catch(Exception exception)
                 {
                     // gestion de l'erreur
+                    throw exception;
                 }
 
-                _connection.Close();
 
             }
 
@@ -60,13 +65,13 @@ namespace DemoADO.Repositories
         {
             Section? section = null;
 
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Section WHERE Id = @id";
-                command.Parameters.AddWithValue("id", id);
+                AddParam(command,"id", id);
                 _connection.Open();
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (DbDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -84,14 +89,14 @@ namespace DemoADO.Repositories
         {
             List<Section> sections = new List<Section>();
 
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Section WHERE SectionName LIKE @name";
-                command.Parameters.AddWithValue("name", name);
+                AddParam(command, "name", name);
 
                 _connection.Open();
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (DbDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -109,13 +114,13 @@ namespace DemoADO.Repositories
         {
             List<Section> sections = new List<Section>();
 
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM Section";
 
                 _connection.Open();
 
-                using(SqlDataReader reader = command.ExecuteReader())
+                using(DbDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -141,13 +146,13 @@ namespace DemoADO.Repositories
         public void Update(int id, Section section) {
             if (section is null) throw new ArgumentNullException(nameof(section), "La section ne peut être null");
             if (section.SectionName is null) throw new NullReferenceException("Le nom de la section ne peut être null");
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "UPDATE [Section] "
                     + "SET [SectionName] = @name "
                     + "WHERE [Id] = @id";
-                command.Parameters.Add(new SqlParameter("name",section.SectionName));
-                command.Parameters.Add(new SqlParameter("id",id));
+                AddParam(command,"name",section.SectionName);
+                AddParam(command,"id",id);
                 try
                 {
                     _connection.Open();
@@ -164,10 +169,10 @@ namespace DemoADO.Repositories
         // Delete
         public void Delete(int id)
         {
-            using (SqlCommand command = _connection.CreateCommand())
+            using (DbCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "DELETE FROM Section WHERE Id = @id";
-                command.Parameters.AddWithValue("id", id);
+                AddParam(command, "id", id);
 
                 _connection.Open();
 
@@ -184,6 +189,14 @@ namespace DemoADO.Repositories
                     Console.WriteLine("Aucune section n'a été supprimé");
                 }
             }
+        }
+
+        private void AddParam(DbCommand command, string paramName, object? value)
+        {
+            DbParameter param = command.CreateParameter();
+            param.ParameterName = paramName;
+            param.Value = value ?? DBNull.Value;
+            command.Parameters.Add(param);
         }
     }
 }

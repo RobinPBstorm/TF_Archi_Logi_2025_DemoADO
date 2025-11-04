@@ -1,7 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,41 +10,45 @@ namespace DemoADO.Repositories
 {
     public class SectionRepositoryDisconnected
     {
-        private SqlConnection _connection;
+        private DbConnection _connection;
 
         public DataTable Section { get; set; } = new DataTable();
         public DateTime? lastReception { get; private set; }
 
-        private SqlDataAdapter _adapter = new SqlDataAdapter();
+        private DbDataAdapter _adapter;
 
-        public SectionRepositoryDisconnected(SqlConnection connection)
+        public SectionRepositoryDisconnected(DbConnection connection, string providerName)
         {
             //Liaison de la connection
             _connection = connection;
 
+            DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
+
+            _adapter = factory.CreateDataAdapter()!;
+
             //Définition de la commande de récupération
-            SqlCommand selectCommand = _connection.CreateCommand();
+            DbCommand selectCommand = _connection.CreateCommand();
             selectCommand.CommandText = "SELECT * FROM [Section]";
 
             //Définition de la commande de mise à jour
-            SqlCommand updateCommand = _connection.CreateCommand();
+            DbCommand updateCommand = _connection.CreateCommand();
             updateCommand.CommandText = "UPDATE [Section] "
                 + "SET [SectionName] = @sectionName "
                 + "WHERE [Id] = @id";
-            updateCommand.Parameters.Add(new SqlParameter("sectionName", SqlDbType.VarChar, 50, "SectionName"));
-            updateCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
+            AddParam(updateCommand,"sectionName", DbType.String, 50, "SectionName");
+            AddParam(updateCommand,"id", DbType.Int32, 0, "Id");
 
             //Définition de la commande d'insertion
-            SqlCommand insertCommand = _connection.CreateCommand();
+            DbCommand insertCommand = _connection.CreateCommand();
             insertCommand.CommandText = "INSERT INTO [Section] ([Id], [SectionName]) "
                 + "VALUES (@id, @sectionName)";
-            insertCommand.Parameters.Add(new SqlParameter("sectionName", SqlDbType.VarChar, 50, "SectionName"));
-            insertCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
+            AddParam(insertCommand, "sectionName", DbType.String, 50, "SectionName");
+            AddParam(insertCommand,"id", DbType.Int32, 0, "Id");
 
             //Définition de la commande de suppression
-            SqlCommand deleteCommand = _connection.CreateCommand();
+            DbCommand deleteCommand = _connection.CreateCommand();
             deleteCommand.CommandText = "DELETE FROM [Section] WHERE [Id] = @id";
-            deleteCommand.Parameters.Add(new SqlParameter("id", SqlDbType.Int, 0, "Id"));
+            AddParam(deleteCommand, "id", DbType.Int32, 0, "Id");
 
             //Affectation des commandes à notre adapteur
             _adapter.SelectCommand = selectCommand;
@@ -62,6 +66,15 @@ namespace DemoADO.Repositories
         public void UpdateDataSet() 
         { 
             _adapter.Update(Section);
+        }
+        private void AddParam(DbCommand command, string paramName, DbType paramType, int paramSize, string columnName)
+        {
+            DbParameter param = command.CreateParameter();
+            param.ParameterName = paramName;
+            param.DbType = paramType;
+            param.Size = paramSize;
+            param.SourceColumn = columnName;
+            command.Parameters.Add(param);
         }
     }
 }
