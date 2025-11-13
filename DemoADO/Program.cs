@@ -1,11 +1,15 @@
 ﻿using DemoADO.models;
 using DemoADO.Repositories;
+using Microsoft.Data;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
 
 string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ADO;Integrated Security=True";
 
-string providerName = "System.Data.SqlClient";
+DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+
+string providerName = "Microsoft.Data.SqlClient";
 
 DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
 
@@ -15,15 +19,16 @@ DbConnection connection = factory.CreateConnection()!;
 connection.ConnectionString = connectionString;
 
 #region Code Robin
+
 // Vérifier que la connection est établie
-using (DbConnection connection1 = connection)
-{
-    connection1.Open();
+//using (DbConnection connection1 = connection)
+//{
+//    connection1.Open();
 
-    Console.WriteLine("Connection réussie");
+//    Console.WriteLine("Connection réussie");
 
-    connection1.Close();
-}
+//    connection1.Close();
+//}
 
 SectionRepository sectionRepository = new SectionRepository(connection);
 
@@ -61,6 +66,7 @@ foreach (Section section in sections)
 
 Console.WriteLine("---Suppression---");
 sectionRepository.Delete(1230);
+
 #endregion
 
 SectionRepositoryDisconnected repository = new SectionRepositoryDisconnected(connection, providerName);

@@ -18,11 +18,12 @@ namespace DemoADO.Repositories
         private DbDataAdapter _adapter;
 
         public SectionRepositoryDisconnected(DbConnection connection, string providerName)
-        {
-            //Liaison de la connection
-            _connection = connection;
+		{
+			//Liaison de la connection
+			_connection = connection;
 
-            DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
+
+			DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
 
             _adapter = factory.CreateDataAdapter()!;
 
